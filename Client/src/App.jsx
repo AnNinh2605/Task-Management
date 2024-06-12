@@ -1,15 +1,40 @@
 import React from 'react'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
-function App() {
+import Login from './Components/Login.jsx';
+import Register from './Components/Register.jsx';
+import ProtectedRoute from './Components/ProtectedRoute.jsx';
+import NotFound from './Components/NotFound.jsx';
 
+import SideBar from './Components/TaskComponents/SideBar.jsx';
+import AllTask from './Components/TaskComponents/AllTask.jsx';
+import ImportantTask from './Components/TaskComponents/ImportantTask.jsx';
+import CompletedTask from './Components/TaskComponents/CompletedTask.jsx';
+import ProcessingTask from './Components/TaskComponents/ProcessingTask.jsx';
+
+function App() {
     return (
-        <>
-          Task management
-        </>
+        <BrowserRouter>
+            <Routes>
+                <Route path='/login' element={<Login />} />
+                <Route path='/register' element={<Register />} />
+                <Route path='/'
+                    element={
+                        <ProtectedRoute>
+                            <SideBar />
+                        </ProtectedRoute>
+                    }>
+                    <Route index element={<AllTask />} />
+                    <Route path='/important' element={<ImportantTask />}></Route>
+                    <Route path='/completed' element={<CompletedTask />}></Route>
+                    <Route path='/processing' element={<ProcessingTask />}></Route>
+                </Route>
+                <Route path='*' element={<NotFound />} />
+            </Routes>
+        </BrowserRouter >
     )
 }
 
