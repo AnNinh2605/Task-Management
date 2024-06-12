@@ -1,0 +1,19 @@
+    .bg-main {
+        background-color: #222121;
+    }
+
+    .bg-taskCard {
+        background-color: #68626241
+    }
+
+    .hover-gb-grey {
+        cursor: pointer;
+
+        &:hover {
+            background-color: #968e8e41
+        }
+    }
+
+    .border-dashed {
+        border: 1px dashed black;
+    }

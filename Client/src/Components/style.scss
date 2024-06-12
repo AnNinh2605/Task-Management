@@ -1,5 +1,18 @@
+.bg {
+    background-color: #181818;
+
+    .bg-main {
+        background-color: #222121;
+    }
+}
+
 .hover-gb-grey {
-    &:hover{
+    cursor: pointer;
+    &:hover {
         background-color: #968e8e41
     }
+}
+
+.active {
+    background-color: #968e8e41
 }
