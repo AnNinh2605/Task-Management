@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from "react-hook-form";
+import { toast } from 'react-toastify';
+
+import validate from '../Utils/validateInput';
+import userService from '../Services/userService.js'
 
 const Register = () => {
+    const navigate = useNavigate();
+    const { register, handleSubmit, formState: { errors } } = useForm();
+
+    const noSpaceValidate = validate.noSpaceValidate;
+
     const defaultPasswordStatus = {
         password: false,
         confirmPassword: false
     }
-
     const [passwordStatus, setPasswordStatus] = useState(defaultPasswordStatus);
-
     const togglePasswordVisibility = (name) => {
         setPasswordStatus(prevStatus => ({
             ...prevStatus,
@@ -16,51 +24,107 @@ const Register = () => {
         }));
     };
 
-    const passwordInput = (id, placeholder, field) => {
+    const isMatchPasword = (data) => {
+        return data.password === data.confirmPassword;
+    }
+
+    const inputForm = (type, id, placeholder) => {
         return (
-            <div className='position-relative mt-2'>
+            <div className='mt-2'>
                 <input
-                    type={field ? "text" : "password"}
+                    type={type}
                     id={id}
-                    placeholder={placeholder}
                     className='form-control'
-                    autoComplete='current-password'
+                    placeholder={placeholder}
+                    autoComplete='on'
+                    {...register(id,
+                        {
+                            required: 'This field is required',
+                            validate: noSpaceValidate
+                        }
+                    )}
                 />
-                {
-                    !field ?
-                        <i className="position-absolute end-0 translate-middle top-50 text-black fa-solid fa-eye-slash" onClick={() => togglePasswordVisibility(id)}></i> :
-                        <i className="position-absolute end-0 top-50 translate-middle text-black fa-solid fa-eye" onClick={() => togglePasswordVisibility(id)}></i>
-                }
+                {errors[id] && <small className='text-warning'>{errors[id]?.message}</small>}
             </div>
         )
     }
-    
+
+    const passwordInput = (id, placeholder, show) => {
+        return (
+            <div className='mt-2'>
+                <div className='position-relative'>
+                    <input
+                        type={show ? "text" : "password"}
+                        id={id}
+                        placeholder={placeholder}
+                        className='form-control'
+                        autoComplete='current-password'
+                        {...register(id,
+                            {
+                                required: 'This field is required',
+                                validate: noSpaceValidate,
+                                minLength: {
+                                    value: 6,
+                                    message: 'Password required at least 6 characters'
+                                }
+                            }
+                        )}
+                    />
+                    {
+                        show ?
+                            <i className="position-absolute end-0 top-50 translate-middle text-black fa-solid fa-eye" onClick={() => togglePasswordVisibility(id)}></i> :
+                            <i className="position-absolute end-0 translate-middle top-50 text-black fa-solid fa-eye-slash" onClick={() => togglePasswordVisibility(id)}></i>
+                    }
+                </div>
+                {errors[id] && <small className='text-warning'>{errors[id]?.message}</small>}
+            </div>
+        )
+    }
+
+    const handleRegister = async (data) => {
+        // Clean input data
+        for (const item in data) {
+            data[item] = data[item].trim();
+        }
+
+        // check match password
+        if (!isMatchPasword(data)) {
+            toast.error("Password do not match");
+            return;
+        }
+        const { confirmPassword, ...registerData } = data
+
+        try {
+            const serverResponse = await userService.registerService(registerData);
+
+            toast.success(serverResponse.data.message);
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000)
+        } catch (error) {
+            const errorMS = error?.response?.data?.message || 'An error occurred';
+            toast.error(errorMS);
+        }
+
+    }
+
     return (
         <div className='d-flex flex-column justify-content-center align-items-center gap-2 vh-100 bg text-white'>
             <h2>Task Management</h2>
-            <div className='col-10 col-sm-6 col-md-3 rounded-4 p-3 bg-main d-flex flex-column gap-2'>
+            <div className='col-10 col-sm-6 col-md-3 rounded-4 p-4 bg-main d-flex flex-column'>
                 <h4>Register</h4>
 
-                <form>
-                    <div>
-                        <input
-                            type="email"
-                            id='email'
-                            className='form-control'
-                            placeholder='Email'
-                            autoComplete='on'
-                        />
-                    </div>
-                    {
-                        passwordInput("password", "Password", passwordStatus.password)
-                    }
-                    {
-                        passwordInput("confirmPassword", "Confirm password", passwordStatus.confirmPassword)
-                    }
-                </form>
-                <button className='btn btn-success mt-2'>Register</button>
+                <form onSubmit={handleSubmit(handleRegister)}>
 
-                <hr className='my-1' />
+                    {inputForm("text", "username", "Username")}
+                    {inputForm("email", "email", "Email")}
+                    {passwordInput("password", "Password", passwordStatus.password)}
+                    {passwordInput("confirmPassword", "Confirm password", passwordStatus.confirmPassword)}
+
+                    <button type='submit' className='btn btn-success w-100 mt-3'>Register</button>
+                </form>
+
+                <hr className='my-3' />
 
                 <Link to='/login' className='text-center text-decoration-none'>Already have an account?</Link>
             </div>
