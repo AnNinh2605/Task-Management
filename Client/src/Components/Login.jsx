@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form";
+import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux'
+import { jwtDecode } from "jwt-decode";
 
 import validate from '../Utils/validateInput';
 import userService from '../Services/userService.js'
-import { toast } from 'react-toastify';
 
 const Login = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { register, handleSubmit, formState: { errors } } = useForm();
 
     const noSpaceValidate = validate.noSpaceValidate;
 
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleLogin = async(data) => {
+    const handleLogin = async (data) => {
         try {
             const responseServer = await userService.loginService(data);
 
             const access_token = responseServer.data.data.access_token;
+            const decodedToken = jwtDecode(access_token);
+            const userId = decodedToken._id;
+            
+            dispatch({
+                type: 'LOGIN_SUCCESS',
+                payload: userId
+            })
+            
             localStorage.setItem("access_token", access_token);
 
             navigate('/');
