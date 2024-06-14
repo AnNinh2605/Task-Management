@@ -8,11 +8,12 @@ const taskSchema = new Schema(
             type: String,
             required: [true, "name is required"]
         },
-        desc: {
+        description: {
             type: String,
         },
         date: {
             type: Date,
+            default: () => new Date()
         },
         completed: {
             type: Boolean,
@@ -21,7 +22,11 @@ const taskSchema = new Schema(
         important: {
             type: Boolean,
             default: false
-        }
+        },
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'user'
+        },
     },
     { timestamps: true }
 );

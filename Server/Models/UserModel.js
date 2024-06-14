@@ -17,10 +17,6 @@ const userSchema = new Schema(
             type: String,
             required: [true, "password is required"],
         },
-        taskId: {
-            type: Schema.Types.ObjectId,
-            ref: 'task'
-        },
         refreshToken: {
             type: String
         },
