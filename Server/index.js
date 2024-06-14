@@ -4,7 +4,8 @@ import 'dotenv/config'
 import cookieParser from 'cookie-parser'
 
 //import route
-import commonRoutes from './Router/commonRoutes.js'
+import userRoutes from './Router/userRoutes.js'
+import taskRoutes from './Router/taskRoute.js'
 
 import connectDB from './utils/connectDB.js'
 
@@ -22,7 +23,8 @@ app.use(cookieParser())
 app.use(express.static('Public'))
 
 //route
-app.use('/', commonRoutes)
+app.use('/api', userRoutes)
+app.use('/api', taskRoutes)
 
 connectDB();
 

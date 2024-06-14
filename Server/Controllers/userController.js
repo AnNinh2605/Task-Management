@@ -133,10 +133,27 @@ const logout = (req, res) => {
     }
 }
 
+const getUser = async(req, res) =>{
+    const _id = req.params._id;
+    
+    try {
+        const data = await UserModel.findById(_id, 'username email');
+
+        return res.status(200).json({
+            status: "success",
+            message: "Get user successfully",
+            data: data
+        });
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
 const Controller = {
     register,
     login,
     logout,
+    getUser
 }
 
 export default Controller;
