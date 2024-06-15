@@ -15,21 +15,35 @@ const AllTask = () => {
         addTask: false,
         editTask: false,
     }
-
     const [show, setShow] = useState(defaultShow);
+
     const [taskCard, setTaskCard] = useState([]);
-    
-    // for show modal
+    const [dataEditModal, setDataEditModal] = useState({});
+
+    // function to show modal
     const toggleShowModal = (name) => {
         setShow(prevStatus => ({ ...prevStatus, [name]: true }));
     }
-    // for close modal
+
+    // function to close modal
     const handleCloseModal = () => {
         setShow(defaultShow);
     }
 
-    const handleDeleteTask = () => {
-        alert("Delete task okok");
+    const handleDeleteTask = async (_id, name) => {
+        const isDeleteTask = window.confirm(`Are you sure you want to delete ${name} task`);
+
+        if (isDeleteTask) {
+            try {
+                const responseServer = await taskService.deleteTaskService(_id);
+                
+                toast.success(responseServer.data.message);
+                getUserTasks();
+            } catch (error) {
+                const errorMS = error?.response?.data?.message || 'An error occurred';
+                toast.error(errorMS);
+            }
+        }
     }
 
     const getUserTasks = async () => {
@@ -49,11 +63,17 @@ const AllTask = () => {
         }
     }
 
-    // Callback function to update tasks after adding a new employee
-    const handleEmployeeAdded = () => {
-        handleCloseModal(); // Close the modal after adding employee
+    // function to close modal and reload get all task 
+    const handleModal = () => {
+        handleCloseModal();
         getUserTasks();
-    };
+    }
+    
+    // function to show edit modal and send data to edit modal
+    const editModal = (dataModal) => {
+        toggleShowModal("editTask");
+        setDataEditModal(dataModal);
+    }
 
     useEffect(() => {
         getUserTasks();
@@ -84,10 +104,10 @@ const AllTask = () => {
                                         }
                                         <div role="button">
                                             <i className="fa-solid fa-file-pen" title='Edit task'
-                                                onClick={() => toggleShowModal("editTask")}>
+                                                onClick={() => editModal(item)}>
                                             </i>
                                             <i className="ms-3 fa-solid fa-trash" title='Delete task'
-                                                onClick={() => handleDeleteTask()}
+                                                onClick={() => handleDeleteTask(item._id, item.name)}
                                             ></i>
                                         </div>
                                     </div>
@@ -109,9 +129,14 @@ const AllTask = () => {
             <ModalAddTask
                 show={show.addTask}
                 handleClose={handleCloseModal}
-                onEmployeeAdded={handleEmployeeAdded}
+                onTaskAdded={handleModal}
             />
-            <ModalEditTask show={show.editTask} handleClose={handleCloseModal} />
+            <ModalEditTask
+                show={show.editTask}
+                handleClose={handleCloseModal}
+                onTaskEdit={handleModal}
+                dataEdit={dataEditModal}
+            />
         </div>
     );
 }
