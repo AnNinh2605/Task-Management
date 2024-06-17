@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const getUserTasks = (userId) => {
+const getUserTasksService = (userId) => {
     return axios.get(`/users/${userId}/tasks`)
 }
 
@@ -20,12 +20,27 @@ const deleteTaskService = (taskId) => {
     return axios.delete(`/tasks/${taskId}`);
 }
 
+const getTasksDataService = (userId, status) => {
+    return axios.get(`/users/${userId}/tasks?status=${status}`)
+}
+
+const toggleImportantStatusService = (taskId) => {
+    return axios.patch(`/tasks/${taskId}/important`)
+}
+
+const toggleCompletedStatusService = (taskId) => {
+    return axios.patch(`/tasks/${taskId}/completed`)
+}
+
 const taskService = {
-    getUserTasks,
+    getUserTasksService,
     createTaskService,
     getTaskService,
     editTaskService,
-    deleteTaskService
+    deleteTaskService,
+    getTasksDataService,
+    toggleImportantStatusService,
+    toggleCompletedStatusService
 }
 
 export default taskService;

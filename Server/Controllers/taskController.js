@@ -4,13 +4,26 @@ import validate from '../utils/validation.js';
 
 const getUserTasks = async (req, res) => {
     const userId = req.params._id;
+    const status = req.query.status;
+
+    // condition query
+    let conditionQuery = { userId: userId };
+    if (status === "processing") {
+        conditionQuery.completed = false;
+    }
+    else if (status === "completed") {
+        conditionQuery.completed = true;
+    }
+    else if (status === "important") (
+        conditionQuery.important = true
+    )
 
     try {
-        const data = await TaskModel.find({ userId: userId });
+        const data = await TaskModel.find(conditionQuery);
 
         return res.status(200).json({
             status: "success",
-            message: "Get all tasks successfully",
+            message: "Get tasks successfully",
             data: data
         });
     } catch (error) {
@@ -52,7 +65,7 @@ const createTask = async (req, res) => {
 const editTask = async (req, res) => {
     const taskId = req.params._id;
     const { name, description, date, completed, important } = req.body;
-    
+
     const validationResult = validate({
         name: name,
         description: description,
@@ -69,14 +82,23 @@ const editTask = async (req, res) => {
     }
 
     try {
-        await TaskModel.findByIdAndUpdate(taskId,
+        const updateTask = await TaskModel.findByIdAndUpdate(taskId,
             {
-                name: name,
-                description: description,
-                date: date,
-                completed: completed,
-                important: important
+                $set: {
+                    name: name,
+                    description: description,
+                    date: date,
+                    completed: completed,
+                    important: important
+                }
             });
+
+        if (!updateTask) {
+            return res.status(404).json({
+                status: "error",
+                message: "Task not found",
+            });
+        }
 
         return res.status(200).json({
             status: "success",
@@ -91,11 +113,70 @@ const deleteTask = async (req, res) => {
     const taskId = req.params._id;
 
     try {
-        await TaskModel.findByIdAndDelete(taskId);
-        
+        const deleteTask = await TaskModel.findByIdAndDelete(taskId);
+
+        if (!deleteTask) {
+            return res.status(404).json({
+                status: "error",
+                message: "Task not found",
+            });
+        }
+
         return res.status(200).json({
             status: "success",
             message: "Delete task successfully",
+        });
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
+const editImportantTask = async (req, res) => {
+    const taskId = req.params._id;
+
+    try {
+        const findTask = await TaskModel.findById(taskId);
+
+        if (!findTask) {
+            return res.status(404).json({
+                status: "error",
+                message: "Task not found",
+            });
+        }
+
+        const importantStatus = findTask.important;
+
+        await TaskModel.findByIdAndUpdate(taskId, { $set: { important: !importantStatus } })
+
+        return res.status(200).json({
+            status: "success",
+            message: "Update important task successfully",
+        });
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
+const editCompletedTask = async (req, res) => {
+    const taskId = req.params._id;
+
+    try {
+        const findTask = await TaskModel.findById(taskId);
+
+        if (!findTask) {
+            return res.status(404).json({
+                status: "error",
+                message: "Task not found",
+            });
+        }
+
+        const completed = findTask.completed;
+
+        await TaskModel.findByIdAndUpdate(taskId, { $set: { completed: !completed } })
+
+        return res.status(200).json({
+            status: "success",
+            message: "Update completed task successfully",
         });
     } catch (error) {
         return errorHandler(res, error);
@@ -106,7 +187,9 @@ const taskController = {
     getUserTasks,
     createTask,
     editTask,
-    deleteTask
+    deleteTask,
+    editImportantTask,
+    editCompletedTask
 }
 
 export default taskController;
