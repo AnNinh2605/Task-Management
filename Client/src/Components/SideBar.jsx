@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify'
+import { jwtDecode } from "jwt-decode";
 
 import './style.scss'
 import userService from '../Services/userService';
+import taskService from '../Services/taskService';
 
 const SideBar = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const userId = useSelector(state => state.user.userId);
 
@@ -36,7 +40,7 @@ const SideBar = () => {
 
     const getUserData = async () => {
         try {
-            const responseServer = await userService.getUserService(userId);
+            const responseServer = await taskService.getUserService(userId);
 
             setUserData(responseServer.data.data);
         } catch (error) {
@@ -44,12 +48,48 @@ const SideBar = () => {
             toast.error(errorMS);
         }
     }
-    const signOut = () => {
-        navigate('/login');
+
+    const logOut = async () => {
+        try {
+            await taskService.logoutService();
+
+            localStorage.removeItem("access_token");
+            navigate('/login');
+        } catch (error) {
+            const errorMS = error.response ? error.response.data.message : 'An error occurred';
+            toast.error(errorMS);
+        }
     }
+
+    const refreshToken = async () => {
+        try {
+            const responseServer = await userService.refreshTokenService();
+            const accessToken = responseServer.data.data.access_token;
+            const decodedToken = jwtDecode(accessToken);
+            const userId = decodedToken._id;
+
+            dispatch({
+                type: 'LOGIN_SUCCESS',
+                payload: userId
+            })
+
+            localStorage.setItem("access_token", accessToken);
+        } catch (error) {
+            const errorMS = error.response ? error.response.data.message : 'An error occurred';
+            toast.error(errorMS);
+        }
+    };
 
     useEffect(() => {
         getUserData();
+    }, [])
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refreshToken();
+        }, 1 * 60 * 1000);
+
+        return () => clearInterval(interval);
     }, [])
 
     return (
@@ -85,7 +125,7 @@ const SideBar = () => {
                 <div
                     className='d-flex align-items-center text-center p-2 mx-auto gap-2 hover-gb-grey mb-3' role='button'
                     onClick={() => {
-                        signOut();
+                        logOut();
                     }}
                 >
                     <i className="fa-solid fa-right-from-bracket"></i>
@@ -100,7 +140,7 @@ const SideBar = () => {
                 aria-controls="demo"
                 type="button"
             >
-                 <i className="fas fa-bars"></i>
+                <i className="fas fa-bars"></i>
             </button>
 
             <div className="collapse" id="bar">
@@ -118,15 +158,15 @@ const SideBar = () => {
                             </li>
                         )
                     })}
-                <div
-                    className='d-flex align-items-center text-center p-2 mx-auto gap-2 hover-gb-grey mb-3 text-white mt-2' role='button'
-                    onClick={() => {
-                        signOut();
-                    }}
-                >
-                    <i className="fa-solid fa-right-from-bracket"></i>
-                    <h6 className='mb-0'>Sign Out</h6>
-                </div>
+                    <div
+                        className='d-flex align-items-center text-center p-2 mx-auto gap-2 hover-gb-grey mb-3 text-white mt-2' role='button'
+                        onClick={() => {
+                            signOut();
+                        }}
+                    >
+                        <i className="fa-solid fa-right-from-bracket"></i>
+                        <h6 className='mb-0'>Sign Out</h6>
+                    </div>
                 </ul>
             </div>
         </>

@@ -20,6 +20,10 @@ const deleteTaskService = (taskId) => {
     return axios.delete(`/tasks/${taskId}`);
 }
 
+const getUserService = (_id) => {
+    return axios.get(`/users/${_id}`);
+}
+
 const getTasksDataService = (userId, status) => {
     return axios.get(`/users/${userId}/tasks?status=${status}`)
 }
@@ -32,6 +36,10 @@ const toggleCompletedStatusService = (taskId) => {
     return axios.patch(`/tasks/${taskId}/completed`)
 }
 
+const logoutService = () => {
+    return axios.post('/logout')
+}
+
 const taskService = {
     getUserTasksService,
     createTaskService,
@@ -40,7 +48,9 @@ const taskService = {
     deleteTaskService,
     getTasksDataService,
     toggleImportantStatusService,
-    toggleCompletedStatusService
+    toggleCompletedStatusService,
+    getUserService,
+    logoutService
 }
 
 export default taskService;

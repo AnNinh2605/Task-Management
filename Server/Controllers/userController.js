@@ -4,10 +4,17 @@ import Joi from 'joi';
 
 import UserModel from '../Models/UserModel.js'
 import errorHandler from '../utils/errorHandler.js';
+import validate from '../utils/validation.js'
 
 const generateAccessToken = (payload) => {
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2m' });
 };
+const generateRefreshToken = (payload) => {
+    return jwt.sign({ _id: payload }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+}
+const generateResetToken = (payload) => {
+    return jwt.sign({ _id: payload }, process.env.RESET_TOKEN_SECRET, { expiresIn: '15m' });
+}
 
 const register = async (req, res) => {
     const saltRounds = 10;
@@ -66,23 +73,9 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     // check input data
-    const schema = Joi.object({
-        email: Joi.string()
-            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-
-        password: Joi.string()
-            .pattern(new RegExp('^[a-zA-Z0-9]{6,30}$'))
-    })
-
-    const { error } = schema.validate(req.body);
-
-    if (error) {
-        console.error('Validation error:', error.details[0].message);
-
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input data. Please check and try again.",
-        });
+    const checkValidate = validate({ email: email, password: password });
+    if (checkValidate) {
+        return res.status(400).json(checkValidate);
     }
 
     try {
@@ -90,7 +83,7 @@ const login = async (req, res) => {
         if (!user) {
             return res.status(401).json({
                 status: "error",
-                message: "Username is not existing",
+                message: "Username/password is not correct",
             });
         }
 
@@ -108,6 +101,17 @@ const login = async (req, res) => {
 
         // create accessToken & refreshToken
         const accessToken = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
+
+        // set refreshToken cookie with an expiration time equal to the expiration time of the refresh token 7d
+        res.cookie('refresh_token', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        });
+
+        await UserModel.updateOne({ _id: user._id }, { $set: { refreshToken: refreshToken } });
 
         return res.status(200).json({
             status: "success",
@@ -121,28 +125,37 @@ const login = async (req, res) => {
     }
 }
 
-const logout = (req, res) => {
-    try {
-        res.clearCookie("jwt_token");
-        return res.status(204).json({
-            status: "success",
-            message: "Logout successfully",
-        });
-    } catch (error) {
-        return errorHandler(res, error);
-    }
-}
+const refreshToken = async (req, res) => {
+    const refreshToken = req.cookies.refresh_token;
 
-const getUser = async(req, res) =>{
-    const _id = req.params._id;
-    
+    if (!refreshToken) {
+        return res.status(400).json({
+            status: "error",
+            message: "No refresh token provided"
+        });
+    }
+
     try {
-        const data = await UserModel.findById(_id, 'username email');
+        const decodedToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+        const user = await UserModel.findById(decodedToken._id);
+
+        if (!user || !user.refreshToken.includes(refreshToken)) {
+            return res.status(401).send('Invalid refresh token');
+        }
+
+        const payload = {
+            _id: user._id,
+        }
+
+        const accessToken = generateAccessToken(payload);
 
         return res.status(200).json({
             status: "success",
-            message: "Get user successfully",
-            data: data
+            message: "Login successfully",
+            data: {
+                access_token: accessToken,
+            }
         });
     } catch (error) {
         return errorHandler(res, error);
@@ -152,8 +165,7 @@ const getUser = async(req, res) =>{
 const Controller = {
     register,
     login,
-    logout,
-    getUser
+    refreshToken
 }
 
 export default Controller;

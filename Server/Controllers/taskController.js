@@ -1,4 +1,5 @@
 import TaskModel from '../Models/TaskModel.js'
+import UserModel from '../Models/UserModel.js'
 import errorHandler from '../utils/errorHandler.js';
 import validate from '../utils/validation.js';
 
@@ -183,13 +184,52 @@ const editCompletedTask = async (req, res) => {
     }
 }
 
+const getUser = async (req, res) => {
+    const _id = req.params._id;
+
+    try {
+        const data = await UserModel.findById(_id, 'username email');
+
+        return res.status(200).json({
+            status: "success",
+            message: "Get user successfully",
+            data: data
+        });
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
+const logout = async (req, res) => {
+    const userId = req.userId;
+    
+    try {
+        res.clearCookie("refresh_token", { httpOnly: true, secure: true, SameSite: 'None' });
+
+        // remove refreshToken to database
+        await UserModel.updateOne(
+            { _id: userId },
+            { $unset: { refreshToken: "" } }
+        );
+
+        return res.status(200).json({
+            status: "success",
+            message: "Logout successfully",
+        });
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
 const taskController = {
     getUserTasks,
     createTask,
     editTask,
     deleteTask,
     editImportantTask,
-    editCompletedTask
+    editCompletedTask,
+    getUser,
+    logout,
 }
 
 export default taskController;

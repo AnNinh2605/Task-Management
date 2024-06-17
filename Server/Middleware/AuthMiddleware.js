@@ -1,14 +1,14 @@
 import jwt from 'jsonwebtoken'
-import AdminModel from '../Models/AdminModel.js';
 
-// check validate account 
-const tokenMiddleware = (req, res, next) => {
+// check access token account 
+const accessTokenMiddleware = (req, res, next) => {
     try {
         const headerToken = req.headers.authorization;
-        const token = headerToken.split(" ")[1];
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        req.userId = decodedToken._id;
-        if (decodedToken) {
+        const access_token = headerToken.split(" ")[1];
+        const decodedAccessToken = jwt.verify(access_token, process.env.ACCESS_TOKEN_SECRET);
+        req.userId = decodedAccessToken._id;
+
+        if (decodedAccessToken) {
             next();
         }
     } catch (error) {
@@ -19,18 +19,6 @@ const tokenMiddleware = (req, res, next) => {
     }
 }
 
-const isAdmin = async (req, res, next) => {
-    const _id = req.userId;
-    try {
-        const results = await AdminModel.findById(_id);
-        if (results && results.role === 'admin') {
-            next();
-        }
-    } catch (error) {
-        return res.status(403).send('Your account can not access to this resources');
-    }
-}
-
-const authMiddleware = { tokenMiddleware, isAdmin }
+const authMiddleware = { accessTokenMiddleware }
 
 export default authMiddleware;

@@ -8,13 +8,13 @@ const axiosConfig = () => {
     // Add a request interceptor
     axios.interceptors.request.use(function (config) {
         // Do something before request is sent
-        // const notContainHeaderUrl = ['/login', '/logout', '/refresh-token', '/forgot-password', '/reset-password'];
-        // const url = config.url;
-        // const isNotContainHeaderUrl = notContainHeaderUrl.some(path => url.includes(path));
+        const notContainHeaderUrl = ['/login', '/register'];
+        const url = config.url;
+        const isNotContainHeaderUrl = notContainHeaderUrl.some(item => url.includes(item));
 
-        // if (!isNotContainHeaderUrl) {
-        //     config.headers['Authorization'] = `Bearer ${localStorage.getItem("accessToken")}`;
-        // }
+        if (!isNotContainHeaderUrl) {
+            config.headers['Authorization'] = `Bearer ${localStorage.getItem("access_token")}`;
+        }
 
         return config;
     }, function (error) {
@@ -31,7 +31,7 @@ const axiosConfig = () => {
     }, function (error) {
         // Any status codes that falls outside the range of 2xx cause this function to trigger
         if (error && error.response.data === "Expired token") {
-            window.location.href = '/';
+            window.location.href = '/login';
             return error && error.response.data;
         }
         if (error && error.status === 403) {

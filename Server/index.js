@@ -9,12 +9,14 @@ import taskRoutes from './Router/taskRoute.js'
 
 import connectDB from './utils/connectDB.js'
 
+import authMiddleware from './Middleware/AuthMiddleware.js'
+
 const PORT = process.env.PORT || 3001
 const app = express()
 
 app.use(cors({
     origin: process.env.CLIENT_URL,
-    methods: 'GET,PUT,POST,DELETE',
+    methods: 'GET,PUT,POST,DELETE,PATCH',
     credentials: true
 }))
 
@@ -24,7 +26,7 @@ app.use(express.static('Public'))
 
 //route
 app.use('/api', userRoutes)
-app.use('/api', taskRoutes)
+app.use('/api', authMiddleware.accessTokenMiddleware, taskRoutes)
 
 connectDB();
 
