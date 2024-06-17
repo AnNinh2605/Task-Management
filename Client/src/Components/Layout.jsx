@@ -7,7 +7,7 @@ import SideBar from './SideBar';
 const Layout = () => {
     return (
         <div className='container-fluid'>
-            <div className="row vh-100 bg p-4 gap-4">
+            <div className="row min-vh-100 bg p-3 gap-3">
                 <SideBar />
                 <Outlet />
             </div>

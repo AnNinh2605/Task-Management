@@ -17,3 +17,23 @@
     .border-dashed {
         border: 1px dashed black;
     }
+
+    .truncate-2-lines {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-height: 3em;
+        /* 2 lines */
+        line-height: 1.5em;
+        /* Adjust according to the font size */
+    }
+
+    .hover-zoom {
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: scale(0.95);
+        }
+    }

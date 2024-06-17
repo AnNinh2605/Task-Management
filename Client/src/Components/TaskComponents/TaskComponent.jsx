@@ -41,7 +41,7 @@ const TaskComponent = (componentName, componentTask) => {
         toggleShowModal("editTask");
         setDataEditModal(dataModal);
     }
-    
+
     const handleDeleteTask = async (_id, name) => {
         const isDeleteTask = window.confirm(`Are you sure you want to delete ${name} task`);
 
@@ -92,7 +92,7 @@ const TaskComponent = (componentName, componentTask) => {
     const toggleCompletedStatus = async (taskId) => {
         try {
             const responseServer = await taskService.toggleCompletedStatusService(taskId);
-        
+
             getTasksData();
             toast.success(responseServer.data.message);
         } catch (error) {
@@ -106,26 +106,27 @@ const TaskComponent = (componentName, componentTask) => {
     }, [])
 
     return (
-        <div className='col border p-4 rounded-4 border-secondary bg-main text-white'>
+        <div className='col border p-3 rounded-4 border-secondary bg-main text-white'>
             <h4 className='mb-3 pb-1 border-bottom border-3 d-inline-block'>{componentName}</h4>
 
-            <div className="container">
-                <div className="row row-cols-1 row-cols-sm-2 row-cols-md-4">
+            <div className="container-fluid">
+                <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4">
                     {taskCard.map((item, index) => {
                         return (
                             <div key={`taskCard-${index}`}
-                                className='col border rounded-4 border-secondary bg-taskCard p-3 d-flex flex-column'>
+                                className='border rounded-4 border-secondary bg-taskCard p-3 d-flex flex-column justify-content-between hover-zoom'
+                                >
                                 <h5>{item.name}</h5>
-                                <small className='mb-2'>{item.description}</small>
+                                <small className='mb-2 truncate-2-lines'>{item.description}</small>
                                 <small className='mb-2'>{item.date}</small>
                                 <div className='d-flex justify-content-between align-items-center'>
                                     <button
                                         className={item.completed ?
                                             "btn btn-sm btn-success rounded-pill" :
                                             "btn btn-sm btn-danger rounded-pill"}
-                                            onClick={() => toggleCompletedStatus(item._id)}
-                                            >
-                                        {item.completed ? 'Completed' : 'Uncompleted'}
+                                        onClick={() => toggleCompletedStatus(item._id)}
+                                    >
+                                        {item.completed ? 'Completed' : 'Incomplete'}
                                     </button>
                                     <div role="button">
                                         <i
@@ -147,7 +148,7 @@ const TaskComponent = (componentName, componentTask) => {
                     })}
 
                     <div
-                        className='col border-dashed rounded-4 border-secondary p-3 fs-6 d-flex justify-content-center align-items-center hover-gb-grey '
+                        className='border-dashed rounded-4 border-secondary p-3 fs-6 d-flex justify-content-center align-items-center hover-gb-grey' style={{"height": "10rem"}}
                         onClick={() => toggleShowModal("addTask")}
                     >
                         <i className="fa-regular fa-plus"></i>

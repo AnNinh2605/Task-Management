@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -10,8 +11,8 @@ import Login from './Components/Login.jsx';
 import Register from './Components/Register.jsx';
 import ProtectedRoute from './Components/ProtectedRoute.jsx';
 import NotFound from './Components/NotFound.jsx';
+import Layout from './Components/Layout.jsx';
 
-import SideBar from './Components/TaskComponents/SideBar.jsx';
 import AllTask from './Components/TaskComponents/AllTask.jsx';
 import ImportantTask from './Components/TaskComponents/ImportantTask.jsx';
 import CompletedTask from './Components/TaskComponents/CompletedTask.jsx';
@@ -27,7 +28,7 @@ function App() {
                     <Route path='/'
                         element={
                             <ProtectedRoute>
-                                <SideBar />
+                                <Layout />
                             </ProtectedRoute>
                         }>
                         <Route index element={<AllTask />} />
