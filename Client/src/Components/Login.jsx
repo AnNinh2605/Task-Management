@@ -91,7 +91,7 @@ const Login = () => {
                     </button>
                 </form>
 
-                <Link to='#' className='text-center text-decoration-none'>Forgot password?</Link>
+                <Link to='/password-forgot' className='text-center text-decoration-none'>Forgot password?</Link>
                 <hr className='my-1' />
 
                 <button className='btn btn-success rounded-3 mx-auto'

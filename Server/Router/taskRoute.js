@@ -3,6 +3,10 @@ import taskController from '../Controllers/taskController.js'
 
 const router = express.Router()
 
+router.post('/logout', taskController.logout)
+
+router.get('/users/:_id', taskController.getUser)
+
 router.get('/users/:_id/tasks', taskController.getUserTasks)
 
 router.post('/tasks', taskController.createTask)

@@ -12,6 +12,8 @@ import Register from './Components/Register.jsx';
 import ProtectedRoute from './Components/ProtectedRoute.jsx';
 import NotFound from './Components/NotFound.jsx';
 import Layout from './Components/Layout.jsx';
+import ForgotPassword from './Components/ForgotPassword.jsx';
+import ResetPassword from './Components/ResetPassword.jsx'
 
 import AllTask from './Components/TaskComponents/AllTask.jsx';
 import ImportantTask from './Components/TaskComponents/ImportantTask.jsx';
@@ -25,6 +27,8 @@ function App() {
                 <Routes>
                     <Route path='/login' element={<Login />} />
                     <Route path='/register' element={<Register />} />
+                    <Route path='/password-forgot' element={<ForgotPassword />} />
+                    <Route path='/password-reset/:resetToken' element={<ResetPassword />} />
                     <Route path='/'
                         element={
                             <ProtectedRoute>

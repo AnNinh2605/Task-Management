@@ -16,27 +16,40 @@ const validate = (taskData) => {
             .optional(),
 
         email: Joi.string()
-            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+            .pattern(new RegExp('^[^\s@]+@[^\s@]+\.[^\s@]+$'))
             .optional(),
 
         password: Joi.string()
+            .min(6)
             .pattern(new RegExp('^[a-zA-Z0-9]{6,30}$'))
             .optional(),
 
-            userId: Joi.string().trim().min(1).required().allow(null).messages({
-                'string.base': 'userId must be a string',
-                'string.empty': 'userId cannot be an empty string',
-                'string.min': 'userId must be at least 1 character long',
-                'any.required': 'userId is required',
-                'any.allowOnly': 'userId cannot be null or undefined'
-            })
+        userId: Joi.string().trim().min(1).optional().empty('').messages({
+            'string.base': 'userId must be a string',
+            'string.empty': 'userId cannot be an empty string',
+            'string.min': 'userId must be at least 1 character long',
+            'any.required': 'userId is required',
+            'any.allowOnly': 'userId cannot be null or undefined'
+        }),
+
+        date: Joi.date()
+            .optional(),
+
+        completed: Joi.boolean()
+            .optional(),
+
+        important: Joi.boolean()
+            .optional()
     })
 
     const { error } = schema.validate(taskData);
     if (error) {
         console.error('Validation error:', error.details[0].message);
 
-        return { error: "Invalid input data. Please check and try again." }
+        return {
+            status: "error",
+            message: "Invalid input data. Please check and try again."
+        }
     }
 }
 

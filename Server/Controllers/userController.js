@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import Joi from 'joi';
+import nodemailer from 'nodemailer';
 
 import UserModel from '../Models/UserModel.js'
 import errorHandler from '../utils/errorHandler.js';
 import validate from '../utils/validation.js'
+
+const saltRounds = 10;
 
 const generateAccessToken = (payload) => {
     return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2m' });
@@ -17,7 +20,6 @@ const generateResetToken = (payload) => {
 }
 
 const register = async (req, res) => {
-    const saltRounds = 10;
     const { username, email, password } = req.body;
 
     // check input data
@@ -162,10 +164,135 @@ const refreshToken = async (req, res) => {
     }
 }
 
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    
+    // check input data
+    const checkValidate = validate({ email: email });
+
+    if (checkValidate) {
+        return res.status(400).json(checkValidate);
+    }
+
+    try {
+        const findUser = await UserModel.findOne({ email: email })
+        if (!findUser) {
+            return res.status(404).json({
+                status: "error",
+                message: "Email not found. Please check your email and try again."
+            });
+        }
+
+        // generate reset token and save to database
+        const userId = findUser._id;
+        const resetToken = generateResetToken(userId);
+
+        await UserModel.updateOne({ _id: userId }, { $set: { resetToken: resetToken } });
+
+        // send reset code to email
+        const sendToEmail = "levu260598@gmail.com";
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const sendEmail = await transporter.sendMail({
+            to: sendToEmail,
+            from: process.env.EMAIL_USER,
+            subject: 'Password Reset',
+            html: `
+            <div style="text-align: center; margin-top: 20px;">
+                <h2>Password Reset</h2>
+                <p>Click the button below to reset your password:</p>
+                <p>
+                    <a href="${process.env.CLIENT_URL}/password-reset/${resetToken}"
+                        style="background-color: #4CAF50; 
+                        color: white; padding: 10px 20px; 
+                        text-decoration: none; border-radius: 5px;"
+                        target="_blank"
+                    >Reset Password
+                    </a>
+                </p>
+            </div>`,
+        });
+        
+        if (!sendEmail) {
+            return res.status(500).json({
+                status: "error",
+                message: "Unable to send email. Please try again later."
+            })
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "Email sent successfully. Please check your inbox."
+        })
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
+const resetPassword = async (req, res) => {
+    const { password, resetToken } = req.body;
+
+    const checkValidate = validate({ password: password });
+
+    if (checkValidate) {
+        return res.status(400).json({checkValidate});
+    }
+
+    try {
+        let decodedResetToken;
+
+        // check valid token
+        try {
+            decodedResetToken = jwt.verify(resetToken, process.env.RESET_TOKEN_SECRET);
+        } catch (error) {
+            if (error instanceof jwt.TokenExpiredError) {
+                return res.status(401).send({ message: 'Request has expired' });
+            } else {
+                return res.status(401).send({ message: 'Request is invalid' });
+            }
+        }
+        
+        // find user to reset password
+        const userId = decodedResetToken._id;
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Not found user'
+            });
+        }
+
+        // save new password
+        await UserModel.updateOne(
+            {_id: userId},
+            {
+                $set: { password: bcrypt.hashSync(password, saltRounds) },
+                $unset: { resetToken: "" }
+            }
+        );
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Reset password successful'
+        });
+    } catch (error) {
+        return errorHandler(res, error);
+    }
+}
+
 const Controller = {
     register,
     login,
-    refreshToken
+    refreshToken,
+    forgotPassword,
+    resetPassword
 }
 
 export default Controller;
