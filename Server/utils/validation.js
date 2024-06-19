@@ -1,48 +1,40 @@
 import Joi from 'joi';
 
-const validate = (taskData) => {
-    const schema = Joi.object({
+const validate = (dataInput) => {
+    const checkCondition = {
         // name: task name
-        name: Joi.string()
-            .invalid(null)
-            .optional(),
+        // trim & min to check when the field includes the entire space bar
+        name: Joi.string().required().trim().min(1),
+    
+        description: Joi.string().required().trim().min(1),
+    
+        username: Joi.string().required().trim().min(1),
+    
+        email: Joi.string().required().pattern(new RegExp('^[^\s@]+@[^\s@]+\.[^\s@]+$')),
+    
+        password: Joi.string().required().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')),
+    
+        userId: Joi.string().required().trim().min(1),
+    
+        date: Joi.date().required(),
+        
+        completed: Joi.boolean().required(),
+    
+        important: Joi.boolean().required()
+    }
+    
+    // create checkApply object bases on dataInput and checkCondition
+    const checkApply = {};
+    for (const key in dataInput) {
+        if (checkCondition[key]) {
+            checkApply[key] = checkCondition[key];
+        }
+    }
 
-        description: Joi.string()
-            .invalid(null)
-            .optional(),
+    const schema = Joi.object(checkApply);
 
-        username: Joi.string()
-            .invalid(null)
-            .optional(),
+    const { error } = schema.validate(dataInput);
 
-        email: Joi.string()
-            .pattern(new RegExp('^[^\s@]+@[^\s@]+\.[^\s@]+$'))
-            .optional(),
-
-        password: Joi.string()
-            .min(6)
-            .pattern(new RegExp('^[a-zA-Z0-9]{6,30}$'))
-            .optional(),
-
-        userId: Joi.string().trim().min(1).optional().empty('').messages({
-            'string.base': 'userId must be a string',
-            'string.empty': 'userId cannot be an empty string',
-            'string.min': 'userId must be at least 1 character long',
-            'any.required': 'userId is required',
-            'any.allowOnly': 'userId cannot be null or undefined'
-        }),
-
-        date: Joi.date()
-            .optional(),
-
-        completed: Joi.boolean()
-            .optional(),
-
-        important: Joi.boolean()
-            .optional()
-    })
-
-    const { error } = schema.validate(taskData);
     if (error) {
         console.error('Validation error:', error.details[0].message);
 
