@@ -34,21 +34,27 @@ const getUserTasks = async (req, res) => {
 
 const createTask = async (req, res) => {
     const { name, description, userId } = req.body;
-    const taskData = req.body;
+    let taskData = req.body;
 
     // check input data
-    const validationResult = validate({ name: name, description: description, userId: userId });
+    const checkValidate = validate({ name: name, description: description, userId: userId });
 
-    if (validationResult?.error) {
-        return res.status(400).json({
-            status: "error",
-            message: validationResult.error
-        });
+    if (checkValidate?.status === "error") {
+        return res.status(400).json(checkValidate);
     }
+    // rename data after sanitize
+    const { name: nameSanitize, description: descriptionSanitize, userId: userIdSatilize } = checkValidate;
 
     // Set default date if it's an empty string
     if (!taskData.date || taskData.date === '') {
         taskData.date = new Date();
+    }
+
+    taskData = {
+        ...taskData,
+        name: nameSanitize,
+        description: descriptionSanitize,
+        userId: userIdSatilize
     }
 
     try {
@@ -67,7 +73,7 @@ const editTask = async (req, res) => {
     const taskId = req.params._id;
     const { name, description, date, completed, important } = req.body;
 
-    const validationResult = validate({
+    const checkValidate = validate({
         name: name,
         description: description,
         date: date,
@@ -75,22 +81,27 @@ const editTask = async (req, res) => {
         important: important
     });
 
-    if (validationResult?.error) {
-        return res.status(400).json({
-            status: "error",
-            message: validationResult.error
-        })
+    if (checkValidate?.status === "error") {
+        return res.status(400).json(checkValidate)
     }
+    // rename data after sanitize
+    const {
+        name: nameSanitize,
+        description: descriptionSanitize,
+        date: dateSatilize,
+        completed: completedSatilize,
+        important: importantSatilize
+    } = checkValidate;
 
     try {
         const updateTask = await TaskModel.findByIdAndUpdate(taskId,
             {
                 $set: {
-                    name: name,
-                    description: description,
-                    date: date,
-                    completed: completed,
-                    important: important
+                    name: nameSanitize,
+                    description: descriptionSanitize,
+                    date: dateSatilize,
+                    completed: completedSatilize,
+                    important: importantSatilize
                 }
             });
 
@@ -136,6 +147,7 @@ const editImportantTask = async (req, res) => {
     const taskId = req.params._id;
 
     try {
+        // findTask to get importantStatus for updating !importantStatus
         const findTask = await TaskModel.findById(taskId);
 
         if (!findTask) {
@@ -147,7 +159,7 @@ const editImportantTask = async (req, res) => {
 
         const importantStatus = findTask.important;
 
-        await TaskModel.findByIdAndUpdate(taskId, { $set: { important: !importantStatus } })
+        await TaskModel.updateOne({ _id: taskId }, { $set: { important: !importantStatus } })
 
         return res.status(200).json({
             status: "success",
@@ -162,6 +174,7 @@ const editCompletedTask = async (req, res) => {
     const taskId = req.params._id;
 
     try {
+        // findTask to get completedStatus for updating !completedStatus
         const findTask = await TaskModel.findById(taskId);
 
         if (!findTask) {
@@ -171,9 +184,9 @@ const editCompletedTask = async (req, res) => {
             });
         }
 
-        const completed = findTask.completed;
+        const completedStatus = findTask.completed;
 
-        await TaskModel.findByIdAndUpdate(taskId, { $set: { completed: !completed } })
+        await TaskModel.updateOne({ _id: taskId }, { $set: { completed: !completedStatus } })
 
         return res.status(200).json({
             status: "success",
@@ -202,7 +215,7 @@ const getUser = async (req, res) => {
 
 const logout = async (req, res) => {
     const userId = req.userId;
-    
+
     try {
         res.clearCookie("refresh_token", { httpOnly: true, secure: true, SameSite: 'None' });
 

@@ -5,24 +5,24 @@ const validate = (dataInput) => {
         // name: task name
         // trim & min to check when the field includes the entire space bar
         name: Joi.string().required().trim().min(1),
-    
+
         description: Joi.string().required().trim().min(1),
-    
+
         username: Joi.string().required().trim().min(1),
-    
-        email: Joi.string().required().pattern(new RegExp('^[^\s@]+@[^\s@]+\.[^\s@]+$')),
-    
-        password: Joi.string().required().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')),
-    
+
+        email: Joi.string().required().trim().pattern(new RegExp('^[^\s@]+@[^\s@]+\.[^\s@]+$')),
+
+        password: Joi.string().required().trim().min(6).pattern(new RegExp('^[a-zA-Z0-9]{6,30}$')),
+
         userId: Joi.string().required().trim().min(1),
-    
+
         date: Joi.date().required(),
-        
+
         completed: Joi.boolean().required(),
-    
+
         important: Joi.boolean().required()
     }
-    
+
     // create checkApply object bases on dataInput and checkCondition
     const checkApply = {};
     for (const key in dataInput) {
@@ -33,7 +33,7 @@ const validate = (dataInput) => {
 
     const schema = Joi.object(checkApply);
 
-    const { error } = schema.validate(dataInput);
+    const { error, value } = schema.validate(dataInput);
 
     if (error) {
         console.error('Validation error:', error.details[0].message);
@@ -42,6 +42,9 @@ const validate = (dataInput) => {
             status: "error",
             message: "Invalid input data. Please check and try again."
         }
+    }
+    else {
+        return value;
     }
 }
 

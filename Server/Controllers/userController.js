@@ -23,32 +23,18 @@ const register = async (req, res) => {
     const { username, email, password } = req.body;
 
     // check input data
-    const schema = Joi.object({
-        username: Joi.string()
-            .trim()
-            .min(1)
-            .required(),
-
-        email: Joi.string()
-            .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-
-        password: Joi.string()
-            .pattern(new RegExp('^[a-zA-Z0-9]{6,30}$'))
-    })
-
-    const { error } = schema.validate(req.body);
-
-    if (error) {
-        console.error('Validation error:', error.details[0].message);
-
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input data. Please check and try again.",
-        });
+    const checkValidate = validate({ username: username, email: email, password: password });
+    if (checkValidate?.status === "error") {
+        return res.status(400).json(checkValidate);
     }
+    // rename data after sanitize
+    const {
+        username: usernameSanitize,
+        email: emailSanitize,
+        password: passwordSanitize } = checkValidate;
 
     try {
-        const isExistingUser = await UserModel.findOne({ email: email });
+        const isExistingUser = await UserModel.findOne({ email: emailSanitize });
         if (isExistingUser) {
             return res.status(409).json({
                 status: "error",
@@ -57,9 +43,9 @@ const register = async (req, res) => {
         }
 
         await UserModel.create({
-            username: username,
-            email: email,
-            password: bcrypt.hashSync(password, saltRounds)
+            username: usernameSanitize,
+            email: emailSanitize,
+            password: bcrypt.hashSync(passwordSanitize, saltRounds)
         });
 
         return res.status(201).json({
@@ -76,12 +62,14 @@ const login = async (req, res) => {
 
     // check input data
     const checkValidate = validate({ email: email, password: password });
-    if (checkValidate) {
+    if (checkValidate?.status === "error") {
         return res.status(400).json(checkValidate);
     }
+    // rename data after sanitize
+    const { email: emailSanitize, password: passwordSanitize } = checkValidate;
 
     try {
-        const user = await UserModel.findOne({ email })
+        const user = await UserModel.findOne({ email: emailSanitize })
         if (!user) {
             return res.status(401).json({
                 status: "error",
@@ -89,7 +77,7 @@ const login = async (req, res) => {
             });
         }
 
-        const isTruePassword = bcrypt.compareSync(password, user.password);
+        const isTruePassword = bcrypt.compareSync(passwordSanitize, user.password);
         if (!isTruePassword) {
             return res.status(401).json({
                 status: "error",
@@ -166,16 +154,17 @@ const refreshToken = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
-    
+
     // check input data
     const checkValidate = validate({ email: email });
-
-    if (checkValidate) {
+    if (checkValidate?.status === "error") {
         return res.status(400).json(checkValidate);
     }
+    // remane data after sanitize
+    const { email: emailSanitize } = checkValidate;
 
     try {
-        const findUser = await UserModel.findOne({ email: email })
+        const findUser = await UserModel.findOne({ email: emailSanitize })
         if (!findUser) {
             return res.status(404).json({
                 status: "error",
@@ -218,7 +207,7 @@ const forgotPassword = async (req, res) => {
                 </p>
             </div>`,
         });
-        
+
         if (!sendEmail) {
             return res.status(500).json({
                 status: "error",
@@ -240,9 +229,12 @@ const resetPassword = async (req, res) => {
 
     const checkValidate = validate({ password: password });
 
-    if (checkValidate) {
-        return res.status(400).json({checkValidate});
+    // check input data
+    if (checkValidate?.status === "error") {
+        return res.status(400).json({ checkValidate });
     }
+    // remane data after sanitize
+    const { password: passwordSanitize } = checkValidate;
 
     try {
         let decodedResetToken;
@@ -257,26 +249,22 @@ const resetPassword = async (req, res) => {
                 return res.status(401).send({ message: 'Request is invalid' });
             }
         }
-        
-        // find user to reset password
-        const userId = decodedResetToken._id;
-        const user = await UserModel.findById(userId);
 
+        // save new password
+        const userId = decodedResetToken._id;
+        const user = await UserModel.findByIdAndUpdate(userId,
+            {
+                $set: { password: bcrypt.hashSync(passwordSanitize, saltRounds) },
+                $unset: { resetToken: "" }
+            }
+        );
+        
         if (!user) {
             return res.status(404).json({
                 status: 'error',
                 message: 'Not found user'
             });
         }
-
-        // save new password
-        await UserModel.updateOne(
-            {_id: userId},
-            {
-                $set: { password: bcrypt.hashSync(password, saltRounds) },
-                $unset: { resetToken: "" }
-            }
-        );
 
         return res.status(200).json({
             status: 'success',
