@@ -3,6 +3,7 @@ import Controller from '../Controllers/userController.js'
 
 const router = express.Router()
 
+router.get('/', (req, res) => res.send("Connecting to API"));
 router.post('/register', Controller.register)
 router.post('/login', Controller.login)
 router.post('/password/forgot', Controller.forgotPassword)
