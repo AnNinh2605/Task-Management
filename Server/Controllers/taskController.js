@@ -20,7 +20,7 @@ const getUserTasks = async (req, res) => {
     )
 
     try {
-        const data = await TaskModel.find(conditionQuery);
+        const data = await TaskModel.find(conditionQuery).sort({ date: 1 });
 
         return res.status(200).json({
             status: "success",
@@ -163,7 +163,7 @@ const editImportantTask = async (req, res) => {
 
         return res.status(200).json({
             status: "success",
-            message: "Update important task successfully",
+            message: "Update task successfully",
         });
     } catch (error) {
         return errorHandler(res, error);
@@ -190,7 +190,7 @@ const editCompletedTask = async (req, res) => {
 
         return res.status(200).json({
             status: "success",
-            message: "Update completed task successfully",
+            message: "Update task successfully",
         });
     } catch (error) {
         return errorHandler(res, error);

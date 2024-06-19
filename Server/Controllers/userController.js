@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import Joi from 'joi';
 import nodemailer from 'nodemailer';
 
 import UserModel from '../Models/UserModel.js'
@@ -10,7 +9,7 @@ import validate from '../utils/validation.js'
 const saltRounds = 10;
 
 const generateAccessToken = (payload) => {
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2m' });
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
 };
 const generateRefreshToken = (payload) => {
     return jwt.sign({ _id: payload }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });

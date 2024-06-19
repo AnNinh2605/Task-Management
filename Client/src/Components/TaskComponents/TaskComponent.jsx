@@ -43,7 +43,7 @@ const TaskComponent = (componentName, componentTask) => {
     }
 
     const handleDeleteTask = async (_id, name) => {
-        const isDeleteTask = window.confirm(`Are you sure you want to delete ${name} task`);
+        const isDeleteTask = window.confirm(`Are you sure you want to delete ${name} task?`);
 
         if (isDeleteTask) {
             try {
@@ -107,7 +107,7 @@ const TaskComponent = (componentName, componentTask) => {
 
     return (
         <div className='col border p-3 rounded-4 border-secondary bg-main text-white'>
-            <h4 className='mb-3 pb-1 border-bottom border-3 d-inline-block'>{componentName}</h4>
+            <h4 className='mb-2 pb-1 border-bottom border-3 d-inline-block'>{componentName}</h4>
 
             <div className="container-fluid">
                 <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4">
@@ -132,7 +132,7 @@ const TaskComponent = (componentName, componentTask) => {
                                         <i
                                             className={item.important ?
                                                 "fa-solid fa-star text-warning" : "fa-solid fa-star"}
-                                            title='Toggle important task'
+                                            title='Important task'
                                             onClick={() => toggleImportantStatus(item._id)}
                                         ></i>
                                         <i className="ms-3 fa-solid fa-file-pen" title='Edit task'

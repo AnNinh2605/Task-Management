@@ -2,7 +2,7 @@ import TaskComponent from './TaskComponent';
 
 const AllTask = () => {
     return (
-      TaskComponent("All Tasks", "")
+      TaskComponent("All Tasks", " ")
     );
 }
 

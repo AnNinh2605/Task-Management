@@ -87,7 +87,7 @@ const SideBar = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             refreshToken();
-        }, 1 * 60 * 1000);
+        }, 14 * 60 * 1000);
 
         return () => clearInterval(interval);
     }, [])

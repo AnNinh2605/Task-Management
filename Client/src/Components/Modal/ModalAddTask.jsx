@@ -17,7 +17,7 @@ const ModalAddTask = (props) => {
 
     const handleAddTask = async (data) => {
         // Clean input data
-        const fieldsToTrim = ['name', 'description', 'date'];
+        const fieldsToTrim = ['name', 'description'];
         for (const item in data) {
             if (fieldsToTrim.includes(item)) {
                 data[item] = data[item].trim();
@@ -30,7 +30,7 @@ const ModalAddTask = (props) => {
             const responseServer = await taskService.createTaskService(taskData);
 
             toast.success(responseServer.data.message);
-            props.onEmployeeAdded();
+            props.onTaskAdded();
             reset();
         } catch (error) {
             const errorMS = error?.response?.data?.message || 'An error occurred';
